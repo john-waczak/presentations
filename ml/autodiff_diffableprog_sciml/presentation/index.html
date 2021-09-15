@@ -416,7 +416,7 @@
             </section>
 
 
-            <section class="slide-top">
+            <section>
                 <div class="alignleft">
                     <h3> This is great, but it requires that we create a new set of data structures in our code that can track the propagation of derivatives.</h3><br><br><br>
                     <h3> i.e. your <code>tf.Tensor</code> in TensorFlow and your <code>torch.Tensor</code> in PyTorch.</h3><br><br><br>
@@ -445,6 +445,7 @@
                     <h3>A key feature of Julia is its abstract type system </h3><br><br>
                     <h3>This let's you write generic functions that dispatch to whatever data type you have</h3><br><br>
                     <h3>Further, this means packages are composable out of the box.</h3><br><br>
+                    <h3>The AD package for Julia (currently Zygote.jl) has been implemented <i>language wide</i> meaning you can differentiate through almost any generic Julia Code!</h3><br><br>
                     <h3><u>Examples:</u></h3>
                     <h4>&emsp;<a href="https://diffeq.sciml.ai/stable/">DifferentialEquations.jl</a> -- full fledged DiffeEq package</h4>
                     <h4>&emsp;<a href="https://measurementsjl.readthedocs.io/en/latest/">Measurements.jl</a> -- numerical types for tracking uncertainties</h4>
@@ -455,9 +456,59 @@
             </section>
 
             <section class="slide-top">
-                <div class="alignleft">
+                <div class="grid">
+                    <div class="column">
+                        <h1><u>Example:</u> Hand Written Sine Function</h1>
+                        <h3>We implement a (bad) version of the sine function via its Taylor Series</h3>
+                        <h3>$$ \sin(x) = x -\frac{x^3}{3!} + \frac{x^5}{5!} - \dots $$</h3><br><br>
+                        <h3>This implementation has a <code>for</code> loop</h3><br><br>
+                        <h3>it even has <code>if</code> statements!</h3><br><br>
+                        <h3>Julia differentiaties right through!</h3><br><br>
+                        <h3>Both forward-mode AD and reverse-mode AD give us machine precision</h3>
+                    </div>
+                    <div class="column bg-white shadow">
+                        <img class="alignright" src="media/diffablep-1.png" alt="diffable p 1">
+                        <img class="alignright" src="media/diffablep-2.png" alt="diffable p 2">
+                    </div>
                 </div>
             </section>
+
+            <section class="aligncenter">
+                <h1>Why does this matter?</h1>
+            </section>
+
+            <section class="aligncenter">
+                <h1>If we can define the adjoint (like the transpose of a matrix) then we can compute gradients and optimize!</h1>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h1><u><strong>Application:</strong> Reverse-mode AD of ODE Solutions</u> </h1>
+                            <h3>See <a href="https://arxiv.org/abs/1806.07366">this</a> excellent paper</h3><br><br>
+                            <h3>Suppose we want to optimize some function \(L\) that depends on the result of an ODE solver, i.e. </h3>
+                            <h3>
+                                \begin{align}
+                                L(z(t_1)) &:= L\left(z(t_0) + \int_{t_0}^{t_1}f(z(t),t, \theta) dt \right)\\
+                                &= L\left(\text{ODESolve}(z(t_0), f, t_0, t_1, \theta) \right)
+                                \end{align}
+                            </h3>
+                            <h3>We can define an adjoint eqaution (see paper for details) solved in reverse time so that:</h3>
+                            <h3>
+                                \begin{align}
+                                \frac{dL}{d\theta} = -\int_{t_1}^{t_0} a(t) \frac{\partial f}{\partial \theta} dt
+                                \end{align}
+                            </h3>
+                        </div>
+                        <div class="column bg-white shadow">
+                            <img class="aligncenter" src="media/odesad-1.png" alt="odes ad 1">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
 
     </main>
 
