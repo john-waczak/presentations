@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Automatic Differentiation, Differentiable Programming, and Scientific Machine Learning</title>
+
+    <!-- Add MathJax Support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,700,700i%7CMaitree:200,300,400,600,700&amp;subset=latin-ext" rel="stylesheet">
+    <!-- CSS WebSlides -->
+    <link rel="stylesheet" type='text/css' media='all' href="../static/css/webslides.css">
+    <!-- Optional - CSS SVG Icons (Font Awesome) -->
+    <link rel="stylesheet" type='text/css' media='all' href="../static/css/svg-icons.css">
+  </head>
+  <body>
+    <main role="main">
+        <article id="webslides" class="vertical">
+
+            <!-- slide 1 -->
+            <section>
+                <span class="background" style="background-image:url('media/matrix.jpg')"></span>
+                <!--.wrap = container (width: 90%) -->
+                <div class="wrap aligncenter">
+                    <h1 style="color:white"><strong>Automatic Differentiation, Differentiable Programming, and Scientific Machine Learning</strong></h1>
+                    <h2 style="color:white">John Waczak </h2>
+                    <h3 style="color:white">September 17, 2021</h3>
+                    <h3 style="color:white">GSP</h3>
+                </div>
+            </section>
+
+            <!-- slide 2 -->
+            <section>
+                <div class="bg-white shadow">
+                    <h1><strong>Outline</strong></h1>
+                    <ul class="flexblock reasons">
+                        <li>
+                            <h1>Automatic Differentiation (Autograd)</h1>
+                            <h2>Analytic differentiation, numerical differentiation, dual numbers, forward mode AD, computational graphs, reverse mode AD, static graph vs backpropagation</h2>
+                        </li>
+                        <li>
+                            <h1>Differentiable Programming (\(\partial P\))</h1>
+                            <h2>Language wide AD as a programming paradigm, my pitch for Julia, demos: crappy sine function implementation</h2>
+                        </li>
+                        <li>
+                            <h1>Scientific Machine Learning (SciML)</h1>
+                            <h2>What is a NN really?, NN from scratch, physics informed NNs, Neural ODEs and autograd through DiffEqs, UDEs, SINDy and sparse regression, Fun example: Hamiltonian NNs</h2>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Analytic Differentiation -->
+            <section class="bg-apple">
+                <div class="aligncenter">
+                    <h1><strong>Differentiation Techniques</strong></h1>
+                </div>
+            </section>
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h3>Analytic differentiation is nice but often nasty </h3>
+                    <h3>
+                        $$f'(x) = \lim_{\epsilon\to 0} \frac{f(x+\epsilon)-f(x)}{\epsilon}$$
+                    </h3>
+                    <h3>To make things easier, we can derive a set of algebraic rules for derivatives</h3>
+                </div>
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <p>
+                                $$\frac{d}{dx} c f(x) = c\cdot f'(x) $$
+                                $$\frac{d}{dx}\left(f(x)+g(x)\right) = f'(x) + g'(x) $$
+                                $$\frac{d}{dx}f(x)g(x) = f'(x)g(x) + f(x)g'(x) $$
+                                $$\frac{d}{dx}f(g(x)) = f'(g(x))\cdot g'(x) $$
+                            </p>
+                        </div>
+                        <div class="column">
+                            <p>
+                                $$\frac{d}{dx} x^a = ax^{a-1}$$
+                                $$\frac{d}{dx}e^x = e^x$$
+                                $$\frac{d}{dx}\sin(x) = \cos(x)$$
+                                $$\frac{d}{dx}\cos(x) = -\sin(x)$$
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="aligncenter">
+                <h1>What do you do if you're given data and not functions?</h1>
+            </section>
+
+            <!-- Numerical Differentiation -->
+            <section class="aligncenter">
+                <h1><strong>Numerical Differentiation</strong></h1>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h3>Forward Difference: $$\Delta_F f(x) = f(x+\Delta x)-f(x) $$ </h3>
+                    <h3>Backward Difference: $$\Delta_B f(x) = f(x)-f(x-\Delta x) $$ </h3>
+                    <h3>Central Difference: $$\Delta_C f(x) = f(x+\Delta x/2)-f(x-\Delta x/2) $$ </h3>
+                    <h3>$$ \vdots $$ </h3>
+                    <h3> Adaptive step size, Runge-Kutta, etc...</h3>
+                </div>
+            </section>
+
+            <section>
+                <div class="aligncenter">
+                    <h2><strong>These methods are great but their accuracy is limited by </strong></h2>
+                    <br>
+                    <h3> The resolution of our data (i.e. what is \(\Delta t\)) </h3>
+                    <br>
+                    <h3> and </h3>
+                    <br>
+                    <h3> The order of our method, i.e. \(\mathcal{O}(1), \mathcal{O}(2), \mathcal{O}(3), \mathcal{O}(4),\) etc...</h3>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <h3>Can we do better?</h3>
+                </div>
+            </section>
+
+
+            <!-- Dual Numbers -->
+            <section class="bg-apple">
+                <div class="aligncenter">
+                    <h1>The best of both worlds:</h1>
+                    <h1><strong>Dual Numbers and Automatic Differentiation</strong></h1>
+                </div>
+            </section>
+
+
+            <section class="aligncenter">
+                <h1>A Motivating Example: Differentiation Over \(\mathbb{C}\) Valued Functions</h1>
+            </section>
+
+            <section class="aligncenter">
+                <h1>A Motivating Example: Differentiation Over \(\mathbb{C}\) Valued Functions</h1>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h4>Consider a \(\mathbb{C}\)-valued function </h4>
+                    <h4>$$f(x+i\delta)$$</h4>
+                    <h4>If it's analytic (a strong requirement), then we can expand:</h4>
+                    <h4>$$f(x+i\delta) = f(x) + if'(x)\delta + \mathcal{O}(\delta^2)$$</h4>
+                    <h4>so that...</h4>
+                    <h4>$$if'(x) = \frac{f(x+i\delta) - f(x)}{\delta} + \mathcal{O}(\delta)$$</h4>
+                    <h4> which leads to the astonishing result </h4>
+                    <h4>$$f'(x) \equiv \frac{\text{Im}(f(x+i\delta))}{\delta}+\mathcal{O}(\delta)$$ </h4>
+                    <h3><strong>The imaginary part keeps track of the derivative!</strong></h3>
+                </div>
+            </section>
+
+            <section class="aligncenter">
+                <h1><strong>Dual Numbers</strong></h1>
+            </section>
+
+            <section>
+                <div class="aligncenter">
+                    <h3>Complex numbers are a subset of (pseudo) number fields called <i>Hypercomplex Numbers</i></h3>
+                    <h3>These are numbers of the form \(a+\epsilon b\) where \(\epsilon\) satisfies one of 3 possibilities:</h3>
+                    <br>
+                </div>
+                <div class="grid">
+                    <div class="column">
+                        <div class="bg-white shadow">
+                            <h3><u>Complex Numbers:</u></h3>
+                            <h3>\(\epsilon^2=-1\)</h3>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="bg-white shadow">
+                            <h3><strong><u>Dual Numbers:</u></strong></h3>
+                            <h3>\(\epsilon^2=0\) </h3>
+                            <h4>If this bothers you, check out <a href="https://en.wikipedia.org/wiki/Smooth_infinitesimal_analysis">smooth infinitesmial analysis</a> </h4>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="bg-white shadow">
+                            <h3><u>Split Complex Numbers:</u></h3>
+                            <h3>\(\epsilon^2=1\)</h3>
+                            <h3>also known as <a href="https://en.wikipedia.org/wiki/Split-complex_number#:~:text=In%20algebra%2C%20a%20split%20complex,%E2%88%97%20%3D%20x%20%E2%88%92%20y%20j.&text=This%20composition%20of%20N%20over,%C3%97%2C%20*)%20a%20composition%20algebra."> hyperbolic numbers</a></h3>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h3>How does this work with functions of dual numbers? <i>Again, use a Taylor Expansion</i></h3>
+                    <h3>$$f(x+\epsilon) = f(x) + f'(x)\epsilon + \cancel{\frac{f''(x)}{2}\epsilon^2 + \cdots}  $$</h3>
+                    <h3> since \(\epsilon^2=0\).</h3>
+                    <h3> This leads to the astonishingly usefull result. For the unital algebra of dual numbers: </h3>
+                    <h3> $$\boxed{f(x+\epsilon) = f(x) + f'(x)\epsilon} $$ </h3>
+                    <h3> If we can create a numeric type for dual numbers, <strong>we can automatically determine the derivative when we evaluate a function.</strong></h3>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="aligncenter">
+                    <h3>We can now use the best of both worlds of analytic differentiation and numerical methods</h3>
+                    <h3> Let's define how the <i>algebra</i> of dual numbers behaves. let \(f(x)\) and \(g(x)\) be two functions. Then,</h3>
+                    <br>
+                    <br>
+                    <div class="aligncenter bg-white shadow">
+                        <h3><strong>Sum rule:</strong> \( (f+g)(x+\epsilon) = [f(x)+g(x)] + \epsilon[f'(x)+g'(x)] \) </h3>
+                        <h3><strong>Product rule:</strong> \( (f\cdot g)(x+\epsilon) = [f(x)\cdot g(x)] + \epsilon[f(x)\cdot g'(x) + g(x)\cdot f'(x)]\)</h3>
+                    </div>
+                    <br>
+                    <br>
+                    <h3> And that's all we need! </h3>
+                    <h3> This is easy enough to <u>turn into code</u></h3>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <h1><strong> Dual Numbers in code </strong></h1>
+                <div class="wrap">
+                    <div class="grid sm">
+                        <div class="column">
+                            <h4>Define a new data structure for dual numbers</h4>
+                        </div>
+                        <div class="column bg-white shadow">
+                            <img class="alignright" src="media/dualNumbers-1.png" alt="dual numbers 1">
+                        </div>
+                    </div>
+                </div>
+                <div class="wrap">
+                    <div class="grid sm">
+                        <div class="column">
+                            <h4>Define dispatches for standard arithmetic operations</h4>
+                        </div>
+                        <div class="column bg-white shadow">
+                            <img class="alignright" src="media/dualNumbers-2.png" alt="dual numbers 2">
+                        </div>
+                    </div>
+                </div>
+                <div class="wrap">
+                    <div class="grid sm">
+                        <div class="column">
+                            <h4>Define primitives for functions with known analytic derivatives </h4>
+                        </div>
+                        <div class="column bg-white shadow">
+                            <img class="alignright" src="media/dualNumbers-3.png" alt="dual numbers 3">
+                        </div>
+                    </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h3>We can easily extend this to higher dimensions. Let \( f:\mathbb{R}^n\to\mathbb{R} \) and define \(\vec{\epsilon} := (\epsilon_1,...,\epsilon_n) \), then</h3>
+                    <h3>$$ f(\vec{x}+\vec{\epsilon}) := f(\vec{x}) +\nabla f(\vec{x})\cdot \vec{\epsilon} $$ </h3>
+                    <h3> which behaves as desired with properties: </h3>
+                    <h3>
+                        \begin{align}
+                        (f+g)(\vec{x}+\vec{\epsilon}) &= [f(\vec{x})+g(\vec{x})] + [\nabla f(\vec{x}) + \nabla g(\vec{x})]\cdot \vec{\epsilon} \\ \\
+                        (f\cdot g)(\vec{x}+\vec{\epsilon}) &= f(\vec{x})g(\vec{x}) + [f(\vec{x})\nabla g(\vec{x}) + g(\vec{x})\nabla f(\vec{x})]\cdot \vec{\epsilon}
+                        \end{align}
+                    </h3>
+                    <h3>with the stipulation that \( \epsilon_i\epsilon_j = 0 \). For full generality, we can find the jacobian of a function \( f:\mathbb{R}^n\to\mathbb{R}^m \) by applying the above to each component function \(f_i(\vec{x})\) with \(i\in \{1,...,m\} \)</h3>
+                    <br>
+                    <br> 
+                    <h3> This method of passing derivatives through nested multivariable functions is called <strong>Forward Mode Automatic Differentiation </strong></h3>
+                </div>
+            </section>
+
+            <!-- Reverse Mode AD -->
+            <section class="bg-apple">
+                <div class="aligncenter">
+                    <h1>Computational Graphs and</h1>
+                    <h1><strong>Reverse Mode Automatic Differentiation</strong></h1>
+                </div>
+            </section>
+
+            <section>
+                <div class="aligncenter">
+                    <h1>Forward Mode AD works well, but quickly becomes computationally expensive.</h1>
+                    <br>
+                    <br>
+                    <h1>What do you do if your model has <i>thousands</i> of functions with <i>hundreds of thousands</i> of tunable parameters?</h1>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h2><strong>The Chain Rule Revisited</strong></h2>
+                    <h3>Suppose we have a function \( f(x(t), y(t)) \), then </h3>
+                    <h3>$$\frac{df}{dt} = \frac{df}{dx}\frac{dx}{dt} + \frac{df}{dy}\frac{dy}{dt} $$</h3>
+                    <h3>If we expand our model so that \(x\) and \(y\) depend on t indirectly through two new functions \(u(t)\) and \(v(t)\) our previous statment is still correct. We need only expand the derivatives for \(x\) and \(y\). For example:</h3>
+                    <h3>$$\frac{dx}{dt} = \frac{dx}{du}\frac{du}{dt} + \frac{dx}{dv}\frac{dv}{dt} $$</h3>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid sm">
+                        <div class="column">
+                            <h3>Example: Logistic Regression</h3>
+                            <h3>
+                                \begin{align}
+                                z &= wx + b \\
+                                y &= \sigma(z)\\
+                                \mathcal{L} &= \frac{1}{2}(y-t)^2 \\
+                                \mathcal{R} &= \frac{1}{2}w^2 \\
+                                \mathcal{L}_{reg} &= \mathcal{L} + \lambda \mathcal{R}
+                                \end{align}
+                            </h3>
+                        </div>
+                        <div class="column bg-white shadow">
+                            <h3>Computational Graph</h3>
+                            <img class="alignright" src="media/reverseMode-1.png" alt="dual numbers 1">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="grid">
+                    <div class="column">
+                        <h4>Now, let's calculate the derivatives going backwards through the graph. </h4>
+                        <h4>
+                            \begin{align}
+                            \overline{\mathcal{L}}_{reg} &:= \frac{d\mathcal{L}_{reg}}{d\mathcal{L}_{reg}} = 1 \\
+                            \overline{\mathcal{R}} &= \frac{d\mathcal{L}_{reg}}{d\mathcal{L}_{reg}}\frac{d\mathcal{L}_{reg}}{d \mathcal{R}} =\overline{\mathcal{L}}_{reg}\cdot \lambda \\
+                            \overline{\mathcal{L}} &= \overline{\mathcal{L}}_{reg}\frac{d\mathcal{L}_{reg}}{d\mathcal{L}} = \overline{\mathcal{L}}_{reg}\cdot 1 \\
+                            \overline{y} &= \overline{\mathcal{L}}\frac{d\mathcal{L}}{dy} = \overline{\mathcal{L}}(y-t) \\
+                            \overline{z} &= \overline{y}\frac{dy}{dz} = \overline{y}\sigma'(z) \\
+                            \overline{w} &= \overline{z}\frac{\partial z}{\partial w} + \overline{\mathcal{R}}\frac{d\mathcal{R}}{dw} = \overline{z}x + \overline{\mathcal{R}}w \\
+                            \overline{b} &= \overline{z}\frac{\partial z}{\partial b} = \overline{z}
+                            \end{align}
+                        </h4>
+                    </div>
+                    <div class="column bg-white shadow">
+                        <img class="alignright" src="media/reverseMode-1.png" alt="dual numbers 1">
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h1><strong>Summary</strong></h1>
+                    <h3>First we pass our values (here \(x\)) through the model to get a prediction (here \(y\) with loss function values \(\mathcal{L}_{reg}\) ) </h3>
+                    <br>
+                    <h3>To optimize the model parameters w.r.t. the loss function, we now start at the end and calculate derivatives going from the output <i>backwards</i> towards the input).</h3>
+                    <br>
+                    <h3>This is called <u>Reverse Mode AD</u> or <u>backpropagation</u>. </h3>
+                    <br>
+                    <h3> For large models with many parameters and many nested functions, this methods is more efficient because we don't have to drage the derivatives through every step of the model on the forward pass when we apply the model to data </h3>
+                    <br>
+                    <h3>There are two ways to implement this approach: the <a href="https://pytorch.org/tutorials/beginner/examples_autograd/tf_two_layer_net.html">static graph</a> (used by TensorFlow) and <a href="https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html">gradient tape</a> (used by Pytorch, Julia, everyone else).
+                </div>
+            </section>
+
+            <section>
+                <div class="grid">
+                    <div class="column">
+                        <h2>Example 2: Simple Neural Network</h2>
+                        <h4>$$z_i = \sum_j w_{ij}^1x_j + b_i^1 $$</h4>
+                        <h4>$$h_i = \sigma(z_i)$$</h4>
+                        <h4>$$y_i = \sum_j w_{ij}^2h_j + b_i^2 $$</h4>
+                        <h4>$$\mathcal{L} = \frac{1}{2}\sum_k(y_k-t_k)^2 $$</h4>
+                    </div>
+                    <div class="column bg-white shadow">
+                        <img class="alignright" src="media/reverseMode-2.png" alt="reverse mode 2">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="grid">
+                    <div class="column">
+                        <h3><strong>Index Form</strong></h3>
+                        <h4>
+                            \begin{align}
+                            \overline{\mathcal{L}} &= 1\\
+                            \overline{y_i} &= \overline{\mathcal{L}}(y_i-t_i) \\
+                            \overline{w_{ij}^2} &= \overline{y_i}h_j \\
+                            \overline{b_i^2} &= \overline{y_i} \\
+                            \overline{h_i} &= \sum_k(\overline{y}_k w_{ki}^2)\\
+                            \overline{z_i} &= \overline{h_i}\sigma'(z_i) \\
+                            \overline{w_{ij}^1} &= \overline{z_i}x_j \\
+                            \overline{b_i^1} &= \overline{z_i}
+                            \end{align}
+                        </h4>
+                    </div>
+                    <div class="column">
+                        <h3><strong>Matrix Form</strong></h3>
+                        <h4>
+                            \begin{align}
+                            \overline{\mathcal{L}} &= 1 \\
+                            \overline{y} &= \overline{\mathcal{L}}(\vec{y}-\vec{t}\;) \\
+                            \overline{W_2} &= \overline{y}\left(\vec{h}^T\right) \\
+                            \overline{b_2} &= \overline{y} \\
+                            \overline{h} &= W_2^T\overline{y}\\
+                            \overline{z} &= \overline{y}\; .* \; \sigma'(\vec{z}) \\
+                            \overline{W_1} &= \overline{z}\left(\vec{x}^T\right) \\
+                            \overline{b_1} &= \overline{z}
+                            \end{align}
+                        </h4>
+                        <h4>The rule is multiply by Matrix on forward pass and by Matrix-Transpose on backwards pass. </h4>
+                    </div>
+                    <div class="column bg-white shadow">
+                        <h3><strong>Computational Graph</strong></h3>
+                        <img class="alignright" src="media/reverseMode-2.png" alt="reverse mode 2">
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h3> This is great, but it requires that we create a new set of data structures in our code that can track the propagation of derivatives.</h3><br><br><br>
+                    <h3> i.e. your <code>tf.Tensor</code> in TensorFlow and your <code>torch.Tensor</code> in PyTorch.</h3><br><br><br>
+                    <h3> This is annoying. Why can't we just use numpy arrays?</h3><br><br><br>
+                    <h3> Further, it means our machine learning library can't compose with other packages (e.g. SciPy) since we can't track derivatives through them.</h3>
+                </div> 
+            </section>
+
+
+            <!-- Differentiable Programming -->
+            <section class="aligncenter bg-apple">
+                <h1><strong>Differentiable Programming and the Julia Language</strong></h1>
+            </section>
+
+            <section class="slide-top">
+                <div class="aligncenter bg-white shadow">
+                    <iframe src="https://julialang.org/" width="1200" height="1200"></iframe>
+                    <!-- <img src="media/julialang.gif" width="1000">
+                    -->
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h1><strong>Differentiable Programming (\(\partial P\))</strong></h1>
+                    <h3>A key feature of Julia is its abstract type system </h3><br><br>
+                    <h3>This let's you write generic functions that dispatch to whatever data type you have</h3><br><br>
+                    <h3>Further, this means packages are composable out of the box.</h3><br><br>
+                    <h3><u>Examples:</u></h3>
+                    <h4>&emsp;<a href="https://diffeq.sciml.ai/stable/">DifferentialEquations.jl</a> -- full fledged DiffeEq package</h4>
+                    <h4>&emsp;<a href="https://measurementsjl.readthedocs.io/en/latest/">Measurements.jl</a> -- numerical types for tracking uncertainties</h4>
+                    <h4>&emsp;<a href="https://painterqubits.github.io/Unitful.jl/stable/">Unitful.jl</a> -- numerical types for tracking units</h4>
+                    <h4>&emsp;<a href="https://fluxml.ai/Flux.jl/stable/">Flux.jl</a> -- deep learning package</h4>
+                    <h3> These are all excellent packages and compose with one another out of the box! </h3>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                </div>
+            </section>
+
+    </main>
+
+    <!-- Required -->
+    <script src="../static/js/webslides.js"></script>
+    <script>
+      window.ws = new WebSlides();
+    </script>
+  </body>
+</html>
