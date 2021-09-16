@@ -502,7 +502,7 @@
                                 \end{align}
                             </h5>
                             <h5>This allows us to perform forward pass to integrate the ODE and then pass the gradients backwards through the adjoint ODE! \(dL/d\theta\) can be obtained easily by automatic differentiation since \(f\) is given.</h5>
-                            <h5>We can now use any standard optimization scheme to fit an ordinary differential equation to an arbitrary Loss function (such as \(\ell_2\)-norm between our integrated result and data.</h5>
+                            <h5>We can now use any standard optimization scheme to fit an ordinary differential equation to an arbitrary Loss function (such as \(\ell_2\)-norm between our integrated result and data. See <a href="https://julialang.org/blog/2019/01/fluxdiffeq/">this</a> awesome post for a detailed discussion of the Julia implementation.</h5>
                         </div>
                         <div class="column bg-white shadow">
                             <img class="aligncenter" src="media/odesad-1.png" alt="odes ad 1">
@@ -512,9 +512,302 @@
             </section>
 
 
+            <section class="aligncenter">
+                <h1>Given we can now differentiate any code we write, how can we combine our scientific knowledge with machine learning methods to acheive better models?</h1>
+            </section>
 
+
+            <!-- Scientific Machine Learning -->
+            <section class="bg-apple">
+                <div class="aligncenter">
+                    <h1><strong>Scientific Machine Learning</strong></h1>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="alignleft">
+                    <h1>It can be hard to tell what Machine Learning <i>actually</i> is. </h1>
+                    <h3>Just like <i>quantum woo</i> in physics, there is a lot of <i>machine learning woo</i>. Compare:</h3>
+                    <div class="wrap">
+                        <div class="grid">
+                            <div class="column bg-white shadow">
+                                <img class="alignright" src="media/quantum-woo.png" alt="quantum woo">
+                            </div>
+                            <div class="column bg-white shadow">
+                                <img class="alignright" src="media/machinelearning-woo.png" alt="machine learning woo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3><u>Primer:</u> What is a Neural Network anyways?</h4>
+                            <h4>A Neural Network is just a function made up of many composed functions </h4>
+                            <h4> The simplest example is the <i>Multi-Layer Perceptron</i> which looks like this: </h4>
+                            <h4> Each layer is of the form \( L_i(\vec{x}) = \sigma_i \left(\mathbf{W}_i \vec{x} + \vec{b}_i \right) \) </h4>
+                            <h4> so that an MLP with \(n\) layers can be written as
+                                $$NN(\vec{x}) = L_n\circ L_{n-1}\circ L_{n-2}\circ \dots \circ L_{2}\circ L_1(\vec{x}) $$
+                            </h4>
+                            <h4>\(\mathbf{W}_i\) are the weight matrices, \(\vec{b}_i\) are the bias vectors, and \(\sigma_i\) are the nonlinear activation functions (e.g. \(\tanh\) ). </h4>
+                            <h4>Since we can now use AD, we can optimize the weights and biases to make our NN fit any function we want</h4>
+                        </div>
+                        <div class="column bg-white shadow">
+                            <img class="alignright" src="media/NN-1.png" alt="NN 1">
+                            <img class="alignright" src="media/NN-2.png" alt="NN 2">
+                            <img class="alignright" src="media/NN-3.png" alt="NN 3">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="aligncenter">
+                <div class="grid">
+                    <div class="column">
+                        <h2>In this form, our machine learning approach is a black box.</h2><br><br>
+                        <h2>How can we incorporate our physics knowledge into these models to make them better?</h2><br><br>
+                        <h2><u>In other words:</u> <i>Let's not throw away information someone already painstakingly collected experimentally/theoretically.</i></h2>
+                    </div>
+                    <div class="column">
+                        <img class="aligncenter" src="media/xkcd-1.png" alt="xkcd 1">
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3><strong>Method 1:</strong> <u>Physics Informed Neural Network</u> </h3>
+                            <h4>Consider a driven spring system: \( x'' = -kx + 0.1\sin(x) \)</h4><br>
+                            <h4>Imagine we don't know the r.h.s of above and we only have 4 badly sampled points.  </h4><br>
+                            <h4>Can we predict the force and thereby predict the motion?</h4><br>
+                            <h4>Naively, we may try to predict the force directly via optimizing a loss function like:</h4><br>
+                            <h4> \( L(p) = \sum_i\left( NN(x(t_i), v(t_i), t_i)-F(x(t_i),v(t_i),t_i) \right)^2 \) </h4>
+                        </div>
+                        <div class="column">
+                            <img class="alignright" src="media/physInformed-1.png" alt="phys informed 1">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h4>Our poorly sampled data leads to a fit with the the right general shape, but doesn't capture the extreme behavior. </h4><br><br>
+                            <h4>As physicists we <i>know</i> that Hooke's Law, \(F_{\text{spring}} = -kx \) captures the behavior of a spring-mass system. </h4><br><br>
+                            <h4>Further, the spring constant \(k\) is a commonly measured parameter for many systems. </h4><br><br>
+                            <h4>Right now we do not include any of this information in our NN model. </h4><br><br>
+                            <h4>What if someone told us that \(k=0.1\)? Could we make a better model?</h4><br><br>
+                        </div>
+                        <div class="column">
+                            <img class="alignright" src="media/physInformed-2.png" alt="phys informed 2">
+                            <img class="alignright" src="media/physInformed-3.png" alt="phys informed 3">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h4><strong>Solution:</strong><u>Add physics regularization term to loss function</u></h4>
+                            <img class="alignright" src="media/physInformed-4.png" alt="phys informed 4">
+                            <img class="alignright" src="media/physInformed-5.png" alt="phys informed 5">
+                            <h4>Now we can control the strength of our physics model by tweaking \(\lambda\)</h4>
+                        </div>
+                        <div class="column">
+                            <img class="alignright" src="media/physInformed-6.png" alt="phys informed 6">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3><strong>Method 2:</strong> <u>Neural ODEs</u> </h3>
+                            <h4>We know we can track gradients through ODE solvers</h4><br>
+                            <h4>Can we fit an ODE to time-series data using a NN?</h4><br>
+                            <h4>i.e. $$ y'(x) = NN(x) $$ </h4><br>
+
+                            <img class="alignright" src="media/neuralODE-1.png" alt="neural ode 1">
+                            <img class="alignright" src="media/neuralODE-2.png" alt="neural ode 2">
+                        </div>
+                        <div class="column">
+                            <h4>Pre-training result </h4>
+                            <img class="alignright" src="media/neuralODE-3.png" alt="neural ode 3">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="aligncenter">
+                <h1><strong>Learning the ODE system</strong></h1>
+                <div class="grid bg-white shadow">
+                    <img class="alignright" src="media/neuralODE-4.png" alt="neural ode 4">
+                </div>
+            </section>
+
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3><strong>Method 3:</strong> <u>Universal Differential Equations</u> </h3>
+                            <h4>Checkout <a href="https://arxiv.org/abs/2001.04385">this</a> awesome paper</h4><br>
+                            <h4>Consider the Lotka-Volterra predator-prey model
+                                \begin{align}
+                                \dot{x} &= \alpha x - \beta xy \\
+                                \dot{y} &= \gamma xy - \delta y
+                                \end{align}
+                            </h4><br>
+                            <h4>Suppose a clever scientist has already (by some other means) evaluated the prey birth rate \(\alpha\) and the predator death rate \(\delta\)</h4>
+                            <h4>Can we fit NN to learn only the missing terms?
+                                \begin{align}
+                                \dot{x} &= \alpha x + NN_1(x,y;p_1) \\
+                                \dot{y} &= -\delta y + NN_2(x, y; p_2)
+                                \end{align}
+                            </h4>
+                        </div>
+                        <div class="column">
+                            <h4>Training Data </h4>
+                            <img class="alignright" src="media/ude-1.png" alt="ude 1">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <img class="alignright" src="media/ude-2.png" alt="ude 2"><br><br>
+                            <img class="alignright" src="media/ude-4.png" alt="ude 4">
+                        </div>
+                        <div class="column">
+                            <h3>Pre-training Fit</h3>
+                            <img class="alignright" src="media/ude-3.png" alt="ude 3">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="aligncenter">
+                <h1><strong>Post-training Fit</strong></h1>
+                <div class="grid bg-white shadow">
+                    <img class="alignright" src="media/ude-5.png" alt="ude 5">
+                </div>
+            </section>
+
+            <section class="aligncenter">
+                <h1><strong>It gets better</strong></h1>
+                <h2>Now that we have <i>learned</i> the missing terms, we extract their functional form</h2>
+            </section>
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3><strong>SINDy</strong>: <u>S</u>parse <u>I</u>dentification of <u>N</u>onlinear <u>Dy</u>namics </h3>
+                            <h4>Create a basis set of combinations of our variables (here \(x\) and \(y\))</h4><br><br>
+                            <h4>Perform a <i>sparse</i> regression (i.e. that minimizes weights) by taking linear combination of basis terms.</h4><br><br>
+                            <h4><strong>Result:</strong> We correctly infer that the missing terms are ofthe form \(xy\) in the first equations and \(xy\) in the second equation.</h4>
+                        </div>
+                        <div class="column">
+                            <img class="alignright" src="media/sindy-1.png" alt="sindy 1">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="aligncenter">
+                <h1>Now that we have a functional form, we can do a new fit to get the coefficients right.</h1><br><br>
+                <h2>The result is a <i>deterministic</i> model that has insane generalizability!</h2>
+            </section>
+
+
+            <section class="aligncenter">
+                <h1><strong>Post-SINDy Extrapolation</strong></h1>
+                <div class="grid bg-white shadow">
+                    <img class="alignright" src="media/ude-6.png" alt="ude 6">
+                </div>
+                <h3> Have I just put all of us out of business?</h3><br><br>
+                <h3> Probably not, but this is still pretty cool.</h3>
+            </section>
+
+
+            <section class="slide-top">
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3><strong>Method 4:</strong> <u>Hamiltonian Neural Networks</u> </h3>
+                            <h4>Checkout <a href="https://arxiv.org/abs/1906.01563">this</a> awesome paper</h4><br>
+                            <h4>Recall Hamilton's Equations:
+                                \begin{align}
+                                \dot{q} &= \frac{dH}{dp} & \dot{p} &= -\frac{\partial H}{\partial q}
+                                \end{align}
+                            </h4>
+                            <h4>Suppose we have sampled some time series so that we have some data for \(q\) and \(p\).</h4><br>
+                            <h4>If we want to predcit the Hamiltonian function \(H\), we could directly train a Neural Network.</h4><br>
+                            <h4>A different (better) approach is to utilize our AD system to train the output of the NN to obey Hamilton's equations, i.e.</h4><br>
+                            <h4>\( L_{\text{HNN}} = \left\Vert \frac{\partial H}{\partial p} - \frac{\partial q}{\partial t} \right\Vert_2 + \left\Vert \frac{\partial H}{\partial q}+ \frac{\partial p}{\partial t} \right\Vert_2 \) </h4>
+                        </div>
+                        <div class="column">
+                            <h4><u>Three Sample Problems:</u> Ideal Spring, Ideal Pendulum, Real Pendulum </h4>
+                            <img class="alignright" src="media/hnn-1.png" alt="hnn 1">
+                            <h4>Because we have learned a representation for \(H\) we solve the same system for any initial energy by adding a constant shift to \(H\) and proceeding!</h4>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section >
+                <div class="wrap">
+                    <div class="grid">
+                        <div class="column">
+                            <h3>If you don't have \(q\) and \(p\) directly, that's okay.</h3>
+                            <h3>Have your NN learn internal representations of \(q\) and \(p\) and then output \(H\) from those.</h3>
+                            <h3><strong>Example:</strong> <u>learning physics from video</u></h3>
+                            <img class="alignright" src="media/hnn-2.png" alt="hnn 2">
+                        </div>
+                        <div class="column">
+                            <img class="alignright" src="media/hnn-3.png" alt="hnn 3">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="aligncenter">
+                <h1>This is super easy in Julia</h1>
+                <div class="grid bg-white shadow">
+                    <div class="column">
+                        <img class="alignright" src="media/hnn-4.png" alt="hnn 4">
+                    </div>
+                    <div class="column">
+                        <h3>Source code</h3>
+                        <img class="alignright" src="media/hnn-5.png" alt="hnn 5">
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="aligncenter">
+                <div class="wrap">
+                    <h1> Thanks for listening!</h1>
+                    <img class="aligncenter" src="media/xkcd-2.png" alt="xkcd 2">
+                </div>
+            </section>
     </main>
-
     <!-- Required -->
     <script src="../static/js/webslides.js"></script>
     <script>
