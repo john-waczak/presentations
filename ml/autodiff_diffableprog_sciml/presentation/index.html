@@ -485,21 +485,24 @@
                 <div class="wrap">
                     <div class="grid">
                         <div class="column">
-                            <h1><u><strong>Application:</strong> Reverse-mode AD of ODE Solutions</u> </h1>
-                            <h3>See <a href="https://arxiv.org/abs/1806.07366">this</a> excellent paper</h3><br><br>
-                            <h3>Suppose we want to optimize some function \(L\) that depends on the result of an ODE solver, i.e. </h3>
-                            <h3>
+                            <h2><u><strong>Application:</strong> Reverse-mode AD of ODE Solutions</u> </h2>
+                            <h5>See <a href="https://arxiv.org/abs/1806.07366">this</a> excellent paper</h5><br>
+                            <h5>Suppose we want to optimize some function \(L\) that depends on the result of an ODE solver, i.e. </h5>
+                            <h5>
                                 \begin{align}
                                 L(z(t_1)) &:= L\left(z(t_0) + \int_{t_0}^{t_1}f(z(t),t, \theta) dt \right)\\
                                 &= L\left(\text{ODESolve}(z(t_0), f, t_0, t_1, \theta) \right)
                                 \end{align}
-                            </h3>
-                            <h3>We can define an adjoint eqaution (see paper for details) solved in reverse time so that:</h3>
-                            <h3>
+                            </h5>
+                            <h5>We can derive an adjoint ODE via the method of Lagrange multipliers (see paper for details) solved in reverse time so that:</h5>
+                            <h5>
                                 \begin{align}
-                                \frac{dL}{d\theta} = -\int_{t_1}^{t_0} a(t) \frac{\partial f}{\partial \theta} dt
+                                a(t) &= \frac{\partial L}{\partial z(t)} \\
+                                \frac{dL}{d\theta} &= -\int_{t_1}^{t_0} a(t) \frac{\partial f}{\partial \theta} dt
                                 \end{align}
-                            </h3>
+                            </h5>
+                            <h5>This allows us to perform forward pass to integrate the ODE and then pass the gradients backwards through the adjoint ODE! \(dL/d\theta\) can be obtained easily by automatic differentiation since \(f\) is given.</h5>
+                            <h5>We can now use any standard optimization scheme to fit an ordinary differential equation to an arbitrary Loss function (such as \(\ell_2\)-norm between our integrated result and data.</h5>
                         </div>
                         <div class="column bg-white shadow">
                             <img class="aligncenter" src="media/odesad-1.png" alt="odes ad 1">
