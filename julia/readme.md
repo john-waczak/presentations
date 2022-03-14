@@ -24,6 +24,9 @@ Second week of april (probably thursday)
    - DifferentialEquations.jl 
    - DynamicalSystems.jl 
    - Clima stuff
+   - Multiple Dispatch Example: Unitful.jl, Measurements.jl
+   - Optimizing your code via Benchmarks.jl @btime macro
+   - Add link for julia-python-matlab cheatsheet
    
 5. $\parial$P: Differentiable Programming 
 6. Machine Learning in Julia
