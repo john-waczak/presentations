@@ -2,6 +2,8 @@ Second week of april (probably thursday)
 
 # Outline
 1. Julia Overview
+   - Julia REPL
+   - Running Scripts
    - syntax
    - unicode characters in code 
    - multiple dispatch 
@@ -10,11 +12,15 @@ Second week of april (probably thursday)
    - Package Manager
    - Julia projects 
    - Precompilation and BinaryBuilder.jl
+   - Auto Documentation 
+   - Excellent documentation
 3. Convenience Integrations 
    - Jupyter Notebooks 
    - Pluto Notebooks 
    - Ex: Intro To Computational Thinking Course
 4. Scientific Computing 
+   - DataFrames.jl
+   - Plots.jl
    - DifferentialEquations.jl 
    - DynamicalSystems.jl 
    - Clima stuff
