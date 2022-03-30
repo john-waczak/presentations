@@ -49,6 +49,7 @@ Second week of april (probably thursday)
    - Franklin.jl (static site generator) 
    - Literate.jl (literate programming package) 
    - Documenter.jl (easy docs generation from function doc strings) 
+   - PkgTemplates.jl (super easy to set up a new project folder with automated github actions to run tests + build documentation) 
    
 9. Resources
    - Julia Con videos
