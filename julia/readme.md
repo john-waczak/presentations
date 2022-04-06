@@ -34,20 +34,30 @@ Julia is a rapidly growing programming language designed from the ground up to a
    - Add link for julia-python-matlab cheatsheet
    
 5. $\parial$P: Differentiable Programming 
-6. Machine Learning in Julia
+   - Language wide automatic differentiation as a paradigm 
+   - Use the sqrt example from the paper (show if statement stuff) 
+
+7. Data Science + Machine Learning in Julia
    - Flux.jl 
    - MLJ.jl
    - Feature importances with Shapely Values
    - DataFrames.jl (i.e. julia version of pandas)
    - Case study from our research
    
-6. High Performance Computing 
+7. High Performance Computing 
    - Threads.@threads 
    - Loop optimizations with @inbounds, @simd,
    - Running on cluster (europa example)
    - Example with graphics cards? 
+
+8. Other Fun Examples: 
+   - Franklin.jl (static site generator) 
+   - Literate.jl (literate programming package) 
+   - Documenter.jl (easy docs generation from function doc strings) 
+   - PkgTemplates.jl (super easy to set up a new project folder with automated github actions to run tests + build documentation) 
    
-8. Resources
+9. Resources
    - Julia Con videos
    - computational thinking course
    - Chris Rackauckas course 
+   - SciML Con 2022 Video 
