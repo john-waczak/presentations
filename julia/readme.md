@@ -1,5 +1,10 @@
 Second week of april (probably thursday)
 
+# Abstract
+
+Julia is a rapidly growing programming language designed from the ground up to address the two language problem: users program in high level languages like Python or R while performant code is developed in Fortran or C.  Julia’s unique combination of a fast just-in-time compiler with a fresh multiple-dispatch programming paradigm makes it possible to effortlessly compose disparate code bases while achieving competitive performance. In this talk I will give an overview of the Julia programming language and demonstrate how this rapidly growing ecosystem will help you spend less time compiling so you can spend more time doing science. 
+
+
 # Outline
 1. Julia Overview
    - Julia REPL
